@@ -1,384 +1,292 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import Programs from './pages/Programs';
+import AboutUs from './pages/AboutUs';
 import FAQ from './pages/FAQ';
 import Registration from './pages/Registration';
 import Instructors from './pages/Instructors';
 import AdminDashboard from './pages/AdminDashboard';
 
-// --- MAIN HERO & DASHBOARD COMPONENT ---
-function MainDashboard() {
+// --- NEW INDIVIDUAL POLICY IMPORTS ---
+import TermsConditions from './pages/legal/TermsConditions';
+import PrivacyPolicy from './pages/legal/PrivacyPolicy';
+import RentalPolicy from './pages/legal/RentalPolicy';
+import StudentCode from './pages/legal/StudentCode';
+
+// --- NAVBAR COMPONENT ---
+function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [selectedDance, setSelectedDance] = useState(null);
-  
-  // Contact Form State
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
 
   useEffect(() => {
-    const loggedInStatus = sessionStorage.getItem("userLoggedIn");
-    if (loggedInStatus === "true") {
-      setIsLoggedIn(true);
-    }
-  }, []);
+    const user = localStorage.getItem("user");
+    setIsLoggedIn(!!user);
+  }, [location]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem("userLoggedIn");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
     setIsLoggedIn(false);
     alert("Logged out successfully");
     navigate('/login');
   };
 
-  const checkRegistrationLogin = () => {
-    // Feature Fix: Seamless login handling for clean flow transitions
-    if (sessionStorage.getItem("userLoggedIn") !== "true") {
-      sessionStorage.setItem("userLoggedIn", "true");
-      setIsLoggedIn(true);
-    }
-    navigate('/registration');
-  };
+  return (
+    <nav style={styles.navbar}>
+      <style>{` .nav-link-item:hover { color: #ff3c78 !important; } `}</style>
+      <div style={styles.logo} onClick={() => navigate('/')}>Rhythm</div>
+      
+      <div style={styles.navLinks}>
+        <Link to="/home" className="nav-link-item" style={styles.navLink}>Home</Link>
+        <Link to="/about" className="nav-link-item" style={styles.navLink}>About Us</Link>
+        <Link to="/programs" className="nav-link-item" style={styles.navLink}>Programs</Link>
+        <Link to="/faq" className="nav-link-item" style={styles.navLink}>FAQ</Link>
+      </div>
 
-  const handleContactSubmit = (e) => {
+      <div style={styles.authGroup}>
+        {isLoggedIn ? (
+          <button onClick={handleLogout} className="action-btn" style={styles.loginBtn}>Logout</button>
+        ) : (
+          <Link to="/login" className="action-btn" style={styles.signupBtn}>Get Started</Link>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+// --- MAIN HERO DASHBOARD ---
+function MainDashboard() {
+  const navigate = useNavigate();
+  const [enquiry, setEnquiry] = useState({ name: '', email: '', message: '' });
+  const [success, setSuccess] = useState(false);
+
+  const handleEnquirySubmit = (e) => {
     e.preventDefault();
-    alert(`Thank you ${formData.name}! Your message has been routed to our team.`);
-    setFormData({ name: '', email: '', message: '' });
+    setSuccess(true);
+    setEnquiry({ name: '', email: '', message: '' });
+    setTimeout(() => setSuccess(false), 4000);
   };
-
-  const dancePrograms = [
-    { id: "hiphop", title: "Hip Hop", shortDesc: "High-energy street dance driven by rhythm and self-expression.", img: "https://i.pinimg.com/originals/cd/aa/33/cdaa339e4560890c3edb80d6cab595fb.jpg", details: "Our Hip Hop program covers foundational movements like popping, locking, breaking, and social dances. Classes focus on rhythm, musicality, groove development, and complex choreography combinations ideal for music videos and stage work." },
-    { id: "ballet", title: "Ballet", shortDesc: "The elegant foundation of technical precision and artistic poise.", img: "https://i.pinimg.com/736x/9e/08/f0/9e08f041b3687b7f893fc9981a51bfee.jpg", details: "Ballet is the cornerstone of all structured dance styles. Students learn standard barre work, center floor combinations, technique alignment, core stability, and grace, building strength and long muscle tone." },
-    { id: "contemporary", title: "Contemporary", shortDesc: "Expressive fluid motion combining classical and modern elements.", img: "https://static.vecteezy.com/system/resources/thumbnails/072/708/964/small/a-young-woman-in-a-purple-dress-is-jumping-photo.jpg", details: "This style connects the body and mind through fluid, raw emotional sequences. Combining elements of lyrical ballet, modern style floor work, fall-and-recovery mechanics, and creative freedom of expression." },
-    { id: "salsa", title: "Salsa", shortDesc: "Energetic, passionate, and fast-paced Latin partner dancing.", img: "https://i.pinimg.com/736x/e8/af/e0/e8afe0ac5d2338514ab893b4c26cb9f1.jpg", details: "Bring high heat to the dance floor! Learn authentic timing, complex partner hand turn patterns, footwork combinations (shines), body isolations, and standard club-style routines suitable for competitive dancing or social nights." },
-    { id: "jazz", title: "Jazz", shortDesc: "Dynamic leaps, sharp turns, and explosive Broadway stylized energy.", img: "https://i.pinimg.com/474x/10/c1/15/10c115164f3d4e8909921e7e67fab638.jpg", details: "Jazz focuses on technical versatility featuring high-velocity kicks, sharp precision lines, isolation techniques, turns, and jumps, all executed to contemporary pop tracks and theatrical show tunes." },
-    { id: "popping", title: "Popping", shortDesc: "The illusions of robotic control, waving, and rapid muscle flexing.", img: "https://i.pinimg.com/736x/bb/49/78/bb4978de525bd3e6359746d6e08ce425.jpg", details: "Master the art of illusion! This class breaks down the precision of contraction and relaxation techniques (pops), animation textures, complex arm and body waving, gliding footwork, and freestyle control." },
-    { id: "kpop", title: "K-Pop", shortDesc: "Learn synchronized icon-level routines from major Korean pop bands.", img: "https://i.pinimg.com/736x/e0/31/4f/e0314fcbd5a0eaa44a983de0acbcb817.jpg", details: "Step right into the spotlight of the Hallyu wave! We teach the exact global hit performance tracks and synchronized routines seen in modern music releases, prioritizing group presentation, clean stage formations, and idol-ready charisma." },
-    { id: "breakdance", title: "Break Dance (Breaking)", shortDesc: "Acrobatic power moves, complex freezes, and top-rock styling.", img: "https://i.pinimg.com/1200x/29/40/ad/2940adf5da4c370844bb5692a4cf065a.jpg", details: "Push physical limits! This high-octane program details the core building pillars of breaking: Toprock entries, intricate Downrock footwork patterns, structural freezes, and explosive power moves (headspins, windmills)." }
-  ];
 
   return (
     <div style={styles.homeContainer}>
-      <style>{hoverStyles}</style>
-
-      {/* --- 1. FIXED NAVIGATION BAR --- */}
-      <nav style={styles.navbar}>
-        <div style={styles.logo}>Rhythm</div>
-        
-        <div style={styles.navLinks}>
-          <a href="#home" style={styles.navLink}>Home</a>
-          <a href="#why" style={styles.navLink}>Why Us</a>
-          <a href="#programs" style={styles.navLink}>Programs</a>
-          <a href="#faq" style={styles.navLink}>FAQ</a>
-          <a href="#contact" style={styles.navLink}>Contact</a>
-          <Link to="/admin" style={styles.navLink}>Admin</Link>
-        </div>
-
-        {/* Buttons Group Alignment */}
-        <div style={styles.authGroup}>
-          {isLoggedIn ? (
-            <button onClick={handleLogout} className="action-btn" style={styles.loginBtn}>Logout</button>
-          ) : (
-            <>
-              <Link to="/login" className="action-btn" style={styles.loginBtn}>Login</Link>
-              <Link to="/signup" className="action-btn" style={styles.signupBtn}>Sign Up</Link>
-            </>
-          )}
-        </div>
-      </nav>
-
-      {/* --- HERO SECTION --- */}
-      <header id="home" style={styles.heroSection}>
+      <style>{`
+        .action-btn:hover { transform: scale(1.04); cursor: pointer; transition: transform 0.2s ease; }
+        .footer-link { color: #888; text-decoration: none; transition: color 0.2s; font-size: 14px; cursor: pointer; display: inline-block; }
+        .footer-link:hover { color: #ff3c78; }
+        .form-input { width: 100%; background: #161616; border: 1px solid #333; padding: 12px; borderRadius: 8px; color: white; outline: none; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; }
+        .form-input:focus { border-color: #ff3c78; }
+      `}</style>
+      
+      {/* 1. HERO SECTION */}
+      <header style={styles.heroSection}>
         <div style={styles.heroContent}>
-          <h1 style={styles.heroTitle}>
-            Feel The <span style={{ color: '#ff3c78' }}>Rhythm</span> Of Dance
-          </h1>
+          <h1 style={styles.heroTitle}>Feel The <span style={{ color: '#ff3c78' }}>Rhythm</span> Of <br /> Dance</h1>
           <p style={styles.heroSubtitle}>
-            Learn from professional instructors, explore multiple dance styles, and 
-            join the most energetic dance community. From beginners to advanced 
-            dancers — we have something for everyone.
+            Learn from professional instructors, explore multiple dance styles, and join the most energetic dance community. From absolute beginners to seasoned stage performers—your journey starts here.
           </p>
-          
           <div style={styles.btnGroup}>
-            <button onClick={checkRegistrationLogin} className="action-btn" style={styles.getStartedBtn}>
-              Get Started
-            </button>
-            <a href="#programs" style={{ textDecoration: 'none' }}>
-              <button className="action-btn" style={styles.exploreBtn}>Explore Classes</button>
-            </a>
+            <button onClick={() => navigate('/programs')} className="action-btn" style={styles.exploreBtn}>Explore Classes</button>
+            <button onClick={() => navigate('/signup')} className="action-btn" style={styles.secondaryBtn}>Join Academy</button>
           </div>
         </div>
       </header>
 
-      {/* --- PROGRAMS SECTION --- */}
-      <section id="programs" style={styles.programsSection}>
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>Our Elite Programs</h2>
-          <p style={styles.sectionSubtitle}>Select a dance discipline to discover curriculum and scheduling structure</p>
-        </div>
-
-        <div style={styles.gridContainer}>
-          {dancePrograms.map((dance) => (
-            <div key={dance.id} className="dance-card" style={styles.card} onClick={() => setSelectedDance(dance)}>
-              <div style={{ position: 'relative', width: '100%', height: '220px', overflow: 'hidden' }}>
-                <img src={dance.img} alt={dance.title} style={styles.cardImage} />
-                <div style={styles.cardOverlay}>Click to explore layout details</div>
-              </div>
-              <div style={styles.cardContent}>
-                <h3 style={styles.cardTitle}>{dance.title}</h3>
-                <p style={styles.cardDesc}>{dance.shortDesc}</p>
-                <span style={styles.viewMoreText}>Learn More →</span>
-              </div>
-            </div>
-          ))}
+      {/* 2. ACADEMY STATS METRIC PANEL */}
+      <section style={styles.statsSection}>
+        <div style={styles.statsGrid}>
+          <div style={styles.statCard}><h3 style={styles.statNumber}>15+</h3><p style={styles.statLabel}>Dance Styles</p></div>
+          <div style={styles.statCard}><h3 style={styles.statNumber}>25+</h3><p style={styles.statLabel}>Expert Trainers</p></div>
+          <div style={styles.statCard}><h3 style={styles.statNumber}>1,500+</h3><p style={styles.statLabel}>Active Students</p></div>
+          <div style={styles.statCard}><h3 style={styles.statNumber}>40+</h3><p style={styles.statLabel}>Industry Awards</p></div>
         </div>
       </section>
 
-      {/* --- UNIQUE FEATURE: WHY CHOOSE US --- */}
-      <section id="why" style={styles.whySection}>
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>The Rhythm Experience</h2>
-          <p style={styles.sectionSubtitle}>Why our academy stands out as a leading global movement community</p>
-        </div>
-        <div style={styles.whyGrid}>
-          <div style={styles.whyCard}>
-            <div style={styles.whyIcon}>🏆</div>
-            <h4 style={{ fontSize: '20px', marginBottom: '10px', color: '#ff3c78' }}>Certified Instructors</h4>
-            <p style={{ color: '#aaa', fontSize: '14px', lineHeight: '1.5' }}>Train under verified award-winning performers and international choreographers.</p>
+      {/* 3. STUDENT TESTIMONIALS */}
+      <section style={styles.sectionPadding}>
+        <h2 style={styles.sectionTitle}>What Our <span style={{ color: '#ff3c78' }}>Dancers</span> Say</h2>
+        <div style={styles.testimonialGrid}>
+          <div style={styles.testimonialCard}>
+            <p style={styles.quote}>"The instructors don't just drill routines—they break down the musicality and feeling behind the style. My freestyle confidence has completely transformed."</p>
+            <div style={{ fontWeight: '600', color: '#ff3c78', marginBottom: '2px' }}>— Amara K.</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>Hip Hop Track</div>
           </div>
-          <div style={styles.whyCard}>
-            <div style={styles.whyIcon}>✨</div>
-            <h4 style={{ fontSize: '20px', marginBottom: '10px', color: '#ff3c78' }}>Premium Facilities</h4>
-            <p style={{ color: '#aaa', fontSize: '14px', lineHeight: '1.5' }}>State-of-the-art acoustic setups, specialized timber shock absorption floors, and full-length mirrors.</p>
-          </div>
-          <div style={styles.whyCard}>
-            <div style={styles.whyIcon}>🎭</div>
-            <h4 style={{ fontSize: '20px', marginBottom: '10px', color: '#ff3c78' }}>Stage Exposure</h4>
-            <p style={{ color: '#aaa', fontSize: '14px', lineHeight: '1.5' }}>Regular annual showcase opportunities, regional competitions, and professional portfolio development.</p>
-          </div>
-        </div>
-        
-        {/* Dynamic Metric Counter Blocks */}
-        <div style={styles.metricRow}>
-          <div style={styles.metricItem}><h2>15+</h2><p>Dance Disciplines</p></div>
-          <div style={styles.metricItem}><h2>500+</h2><p>Active Students</p></div>
-          <div style={styles.metricItem}><h2>25+</h2><p>National Awards</p></div>
-        </div>
-      </section>
-
-      {/* --- CONTACT US SECTION --- */}
-      <section id="contact" style={styles.contactSection}>
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>Get In Touch</h2>
-          <p style={styles.sectionSubtitle}>Have questions? Drop us a message or visit our studios directly</p>
-        </div>
-
-        <div style={styles.contactWrapper}>
-          {/* Left Form Panel */}
-          <form onSubmit={handleContactSubmit} style={styles.contactForm}>
-            <h3 style={{ fontSize: '24px', marginBottom: '20px', fontWeight: '600' }}>Send A Message</h3>
-            <input 
-              type="text" 
-              placeholder="Your Name" 
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              style={styles.formInput} 
-            />
-            <input 
-              type="email" 
-              placeholder="Your Email Address" 
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              style={styles.formInput} 
-            />
-            <textarea 
-              placeholder="Tell us about your goals or questions..." 
-              rows="5" 
-              required
-              value={formData.message}
-              onChange={(e) => setFormData({...formData, message: e.target.value})}
-              style={styles.formTextarea}
-            ></textarea>
-            <button type="submit" className="action-btn" style={styles.formSubmitBtn}>Send Message Now</button>
-          </form>
-
-          {/* Right Info Panel */}
-          <div style={styles.contactInfo}>
-            <h3 style={{ fontSize: '24px', marginBottom: '20px', fontWeight: '600', color: '#ff3c78' }}>Studio Headquarters</h3>
-            <p style={styles.infoLine}>📍 <strong>Address:</strong> 104 Dynamic Beats Ave, Performance District, NY 10001</p>
-            <p style={styles.infoLine}>📞 <strong>Phone Support:</strong> +1 (555) 343-9831</p>
-            <p style={styles.infoLine}>✉️ <strong>Email Admissions:</strong> hello@rhythmdance.com</p>
-            
-            <div style={styles.mapMock}>
-              <div style={{ color: '#ff3c78', fontWeight: '600', marginBottom: '5px' }}>📍 Rhythm Main Center</div>
-              <div style={{ fontSize: '12px', color: '#888' }}>Open Mon-Sat: 6:00 AM - 9:00 PM</div>
-            </div>
+          <div style={styles.testimonialCard}>
+            <p style={styles.quote}>"The community atmosphere here is unmatched. It's incredibly welcoming, the studio acoustics are flawless, and scheduling around my work is completely stress-free."</p>
+            <div style={{ fontWeight: '600', color: '#ff3c78', marginBottom: '2px' }}>— Jordan T.</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>Salsa & Contemporary</div>
           </div>
         </div>
       </section>
 
-      {/* --- BEAUTIFUL & CINEMATIC FOOTER --- */}
-      <footer style={styles.footerContainer}>
-        <div style={styles.footerMainGrid}>
-          {/* Col 1: Branding and Manifesto */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <h3 style={{ fontSize: '26px', fontWeight: '700', color: '#ff3c78', margin: 0 }}>Rhythm</h3>
-            <p style={{ color: '#999', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
-              Empowering dancers of all backgrounds to unleash their potential since 2018. Movement is our language; rhythm is our pulse.
+      {/* 4. CONTACT INFRASTRUCTURE & ENQUIRY FORM */}
+      <section style={{ ...styles.sectionPadding, background: '#0b0b0b', borderTop: '1px solid #141414' }}>
+        <div style={styles.contactRowGrid}>
+          <div>
+            <h2 style={{ ...styles.sectionTitle, textAlign: 'left', marginBottom: '15px' }}>Have Questions?<br />Drop Us a <span style={{ color: '#ff3c78' }}>Message</span></h2>
+            <p style={{ color: '#888', fontSize: '14px', lineHeight: '1.6', maxWidth: '440px', marginBottom: '30px' }}>
+              Want to check slot structures, ask about private family sessions, evaluate studio spaces, or secure corporate discounts? Fill out the inquiry sheet, and our management desk will jump on it.
             </p>
-            <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
-              <span className="social-icon" style={styles.socialBubble}>🌐</span>
-              <span className="social-icon" style={styles.socialBubble}>📷</span>
-              <span className="social-icon" style={styles.socialBubble}>🎥</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', fontSize: '15px' }}>
+              <div>✉️ <span style={{ marginLeft: '8px', color: '#eee' }}>support@rhythmdance.com</span></div>
+              <div>📞 <span style={{ marginLeft: '8px', color: '#eee' }}>+1 (555) 019-2834</span></div>
+              <div>📍 <span style={{ marginLeft: '8px', color: '#555' }}>123 Creative Studio Lane, New York, NY</span></div>
             </div>
           </div>
 
-          {/* Col 2: Fast Navigation links */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h4 style={styles.footerTitle}>Quick Links</h4>
-            <a href="#home" style={styles.footerLink}>Home Dashboard</a>
-            <a href="#programs" style={styles.footerLink}>Dance Curriculums</a>
-            <Link to="/faq" style={styles.footerLink}>Frequently Asked Questions</Link>
-            <a href="#contact" style={styles.footerLink}>Location & Admissions</a>
+          <div style={styles.enquiryCard}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '600' }}>Enquiry Form</h3>
+            {success && <div style={styles.successAlert}>Message routed! We will respond within 24 business hours.</div>}
+            <form onSubmit={handleEnquirySubmit}>
+              <input 
+                type="text" 
+                placeholder="Your Full Name" 
+                className="form-input" 
+                value={enquiry.name}
+                onChange={(e) => setEnquiry({...enquiry, name: e.target.value})}
+                required 
+              />
+              <input 
+                type="email" 
+                placeholder="Email Address" 
+                className="form-input" 
+                value={enquiry.email}
+                onChange={(e) => setEnquiry({...enquiry, email: e.target.value})}
+                required 
+              />
+              <textarea 
+                placeholder="What details are you looking for?" 
+                className="form-input" 
+                rows="4"
+                value={enquiry.message}
+                onChange={(e) => setEnquiry({...enquiry, message: e.target.value})}
+                style={{ resize: 'none' }}
+                required 
+              ></textarea>
+              <button type="submit" style={styles.submitEnquiryBtn}>Send Enquiry</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. CORPORATE NETWORK FOOTER */}
+      <footer style={styles.footerContainer}>
+        <div style={styles.footerGrid}>
+          <div style={styles.footerColumn}>
+            <h3 style={{ color: '#ff3c78', fontSize: '22px', margin: '0 0 15px 0', fontWeight: '700', letterSpacing: '0.5px' }}>Rhythm</h3>
+            <p style={{ color: '#666', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
+              Empowering artists across global standards with elite technical training, state-of-the-art wooden flooring layouts, and high-production performance showcases.
+            </p>
           </div>
 
-          {/* Col 3: Class Timings Summary */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h4 style={styles.footerTitle}>Operating Batches</h4>
-            <p style={styles.footerText}>🌅 Morning: 6:00 AM — 11:00 AM</p>
-            <p style={styles.footerText}>🌆 Evening: 4:00 PM — 9:00 PM</p>
-            <p style={styles.footerText}>🗓️ Sundays: Closed for masterclasses</p>
+          <div style={styles.footerColumn}>
+            <h4 style={styles.footerHeading}>Navigation</h4>
+            <div style={styles.footerLinkList}>
+              <span onClick={() => navigate('/home')} className="footer-link">Home Portal</span>
+              <span onClick={() => navigate('/about')} className="footer-link">About Us</span>
+              <span onClick={() => navigate('/programs')} className="footer-link">Dance Programs</span>
+              <span onClick={() => navigate('/faq')} className="footer-link">FAQ Desk</span>
+            </div>
           </div>
 
-          {/* Col 4: Premium Newsletter Widget */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h4 style={styles.footerTitle}>Stay In Rhythm</h4>
-            <p style={styles.footerText}>Subscribe to get notified about upcoming seasonal workshops and early trial discounts.</p>
-            <div style={styles.newsletterRow}>
-              <input type="email" placeholder="Your email..." style={styles.newsletterInput} />
-              <button onClick={() => alert('Subscribed!')} style={styles.newsletterBtn}>Join</button>
+          <div style={styles.footerColumn}>
+            <h4 style={styles.footerHeading}>Admissions</h4>
+            <div style={styles.footerLinkList}>
+              <span onClick={() => navigate('/registration')} className="footer-link">Application Form</span>
+              <span onClick={() => navigate('/instructors')} className="footer-link">Our Instructors</span>
+              <span onClick={() => navigate('/login')} className="footer-link">Student Login</span>
+              <span onClick={() => navigate('/signup')} className="footer-link">Create Account</span>
+            </div>
+          </div>
+
+          {/* CHANNELS REDIRECTING TO UNIQUE LINKS */}
+          <div style={styles.footerColumn}>
+            <h4 style={styles.footerHeading}>Legal Compliance</h4>
+            <div style={styles.footerLinkList}>
+              <span onClick={() => navigate('/terms-conditions')} className="footer-link">Terms & Conditions</span>
+              <span onClick={() => navigate('/privacy-policy')} className="footer-link">Privacy Policy</span>
+              <span onClick={() => navigate('/rental-policy')} className="footer-link">Studio Rental Policy</span>
+              <span onClick={() => navigate('/student-code')} className="footer-link">Student Code</span>
             </div>
           </div>
         </div>
-        <div style={styles.footerBottomBar}>
-          <p style={{ margin: 0 }}>© 2026 Rhythm Dance Academy | Designed for Immersive Performance. All Rights Reserved.</p>
+
+        <div style={styles.footerBottom}>
+          <p style={{ margin: 0 }}>© 2026 Rhythm Performing Arts Academy. All rights reserved.</p>
         </div>
       </footer>
-
-      {/* --- MODAL POPUP FOR PROGRAM DETAILS --- */}
-      {selectedDance && (
-        <div style={styles.modalOverlay} onClick={() => setSelectedDance(null)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button style={styles.closeBtn} onClick={() => setSelectedDance(null)}>×</button>
-            <img src={selectedDance.img} alt={selectedDance.title} style={styles.modalImage} />
-            <div style={styles.modalBody}>
-              <h2 style={styles.modalTitle}>{selectedDance.title}</h2>
-              <span style={styles.tagLabel}>Ages 6+ & Adults Welcome</span>
-              <p style={styles.modalDetailsText}>{selectedDance.details}</p>
-              <div style={styles.modalInfoGrid}>
-                <div><strong>📅 Batches:</strong> Mon / Wed / Fri</div>
-                <div><strong>🕒 Session:</strong> 60 Minutes</div>
-              </div>
-              <button onClick={() => { setSelectedDance(null); checkRegistrationLogin(); }} className="action-btn" style={styles.modalRegisterBtn}>
-                Enroll In This Style Now
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-// Central routing configuration
+// --- CORE ROUTER ROOT ---
 export default function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<MainDashboard />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/registration" element={<Registration />} />
-        <Route path="/instructors" element={<Instructors />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Routes>
+      <Navbar /> 
+      <div style={{ paddingTop: '80px', minHeight: 'calc(100vh - 80px)', background: '#0a0a0a' }}>
+        <Routes>
+          <Route path="/" element={<MainDashboard />} />
+          <Route path="/home" element={<MainDashboard />} /> 
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/programs" element={<Programs />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/registration" element={<Registration />} />
+          <Route path="/instructors" element={<Instructors />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+
+          {/* INDIVIDUALIZED LEGAL ROUTES MAP */}
+          <Route path="/terms-conditions" element={<TermsConditions />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/rental-policy" element={<RentalPolicy />} />
+          <Route path="/student-code" element={<StudentCode />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
 
-// Global CSS Injection
-const hoverStyles = `
-  html { scroll-behavior: smooth; }
-  .action-btn:hover { transform: scale(1.04); cursor: pointer; }
-  .dance-card { transition: all 0.35s ease; cursor: pointer; }
-  .dance-card:hover { transform: translateY(-10px); box-shadow: 0 12px 30px rgba(255, 60, 120, 0.25); border-color: #ff3c78 !important; }
-  .dance-card:hover img { transform: scale(1.06); }
-  .social-icon:hover { background: #ff3c78 !important; color: white !important; transform: translateY(-3px); cursor: pointer; }
-`;
-
+// --- STYLESHEET CONFIGURATIONS ---
 const styles = {
-  homeContainer: { width: '100%', minHeight: '100vh', background: '#0a0a0a', color: 'white', fontFamily: "'Poppins', sans-serif" },
-  navbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 5%', background: 'rgba(10, 10, 10, 0.95)', position: 'fixed', top: 0, left: 0, width: '100%', height: '80px', zIndex: 1000, borderBottom: '1px solid #1a1a1a', backdropFilter: 'blur(10px)', boxSizing: 'border-box' },
-  logo: { fontSize: '26px', fontWeight: '700', color: '#ff3c78', letterSpacing: '1px' },
-  navLinks: { display: 'flex', gap: '25px', alignItems: 'center' },
-  navLink: { color: 'white', textDecoration: 'none', fontSize: '15px', fontWeight: '400', transition: '0.3s' },
-  authGroup: { display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'flex-end' },
-  loginBtn: { background: 'transparent', color: 'white', border: '2px solid #ff3c78', padding: '8px 20px', borderRadius: '20px', fontSize: '14px', fontWeight: '500', textDecoration: 'none', display: 'inline-block', transition: '0.3s', whiteSpace: 'nowrap' },
-  signupBtn: { background: '#ff3c78', color: 'white', border: '2px solid #ff3c78', padding: '8px 20px', borderRadius: '20px', fontSize: '14px', fontWeight: '500', textDecoration: 'none', display: 'inline-block', transition: '0.3s', whiteSpace: 'nowrap' },
-  heroSection: { height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundImage: "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=1974&auto=format&fit=crop')", backgroundSize: 'cover', backgroundPosition: 'center' },
-  heroContent: { textAlign: 'center', maxWidth: '800px', padding: '0 20px' },
-  heroTitle: { fontSize: '64px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.2', letterSpacing: '1px' },
-  heroSubtitle: { fontSize: '18px', color: '#ccc', marginBottom: '40px', lineHeight: '1.6' },
-  btnGroup: { display: 'flex', justifyContent: 'center', gap: '20px' },
-  getStartedBtn: { background: '#ff3c78', color: 'white', border: 'none', padding: '14px 35px', borderRadius: '30px', fontSize: '16px', fontWeight: '500', transition: '0.3s' },
-  exploreBtn: { background: 'transparent', color: 'white', border: '2px solid #ff3c78', padding: '12px 35px', borderRadius: '30px', fontSize: '16px', fontWeight: '500', transition: '0.3s' },
-  programsSection: { padding: '100px 8%', background: '#0d0d0d' },
-  sectionHeader: { textAlign: 'center', marginBottom: '60px' },
-  sectionTitle: { fontSize: '46px', fontWeight: '700', color: 'white', marginBottom: '15px' },
-  sectionSubtitle: { fontSize: '18px', color: '#aaa', maxWidth: '600px', margin: '0 auto' },
-  gridContainer: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px' },
-  card: { background: '#141414', borderRadius: '15px', overflow: 'hidden', border: '1px solid #222', display: 'flex', flexDirection: 'column' },
-  cardImage: { width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' },
-  cardOverlay: { position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '10px', background: 'rgba(255, 60, 120, 0.85)', color: 'white', textAlign: 'center', fontSize: '13px', fontWeight: '500' },
-  cardContent: { padding: '25px', display: 'flex', flexDirection: 'column', flexGrow: 1 },
-  cardTitle: { fontSize: '22px', fontWeight: '600', marginBottom: '12px', color: '#ff3c78' },
-  cardDesc: { fontSize: '14px', color: '#bbb', lineHeight: '1.5', marginBottom: '20px', flexGrow: 1 },
-  viewMoreText: { fontSize: '14px', color: '#ff3c78', fontWeight: '500' },
-  whySection: { padding: '100px 8%', background: '#0a0a0a', borderTop: '1px solid #141414' },
-  whyGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', marginBottom: '60px' },
-  whyCard: { background: '#111', padding: '40px 30px', borderRadius: '15px', border: '1px solid #1e1e1e', textAlign: 'center' },
-  whyIcon: { fontSize: '40px', marginBottom: '20px' },
-  metricRow: { display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '30px', background: 'linear-gradient(135deg, #141414, #080808)', padding: '40px 20px', borderRadius: '20px', border: '1px solid #222' },
-  metricItem: { textAlign: 'center', minWidth: '150px' },
-  contactSection: { padding: '100px 8%', background: '#0d0d0d', borderTop: '1px solid #1c1c1c' },
-  contactWrapper: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '50px', maxWidth: '1200px', margin: '0 auto' },
-  contactForm: { background: '#141414', padding: '40px', borderRadius: '20px', border: '1px solid #222', display: 'flex', flexDirection: 'column', gap: '15px' },
-  formInput: { background: '#202020', border: '1px solid #333', padding: '15px', borderRadius: '10px', color: 'white', fontSize: '15px', fontFamily: "'Poppins', sans-serif", outline: 'none' },
-  formTextarea: { background: '#202020', border: '1px solid #333', padding: '15px', borderRadius: '10px', color: 'white', fontSize: '15px', fontFamily: "'Poppins', sans-serif", resize: 'none', outline: 'none' },
-  formSubmitBtn: { background: '#ff3c78', color: 'white', border: 'none', padding: '15px', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', transition: '0.3s' },
-  contactInfo: { display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '20px' },
-  infoLine: { fontSize: '16px', color: '#ccc', margin: 0, lineHeight: '1.6' },
-  mapMock: { marginTop: '20px', background: '#141414', height: '180px', borderRadius: '15px', border: '1px solid #252525', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundImage: 'radial-gradient(#222 20%, transparent 20%)', backgroundSize: '15px 15px' },
-  footerContainer: { background: '#050505', borderTop: '1px solid #1a1a1a', padding: '80px 8% 30px' },
-  footerMainGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '40px', marginBottom: '60px' },
-  footerTitle: { fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '10px', borderLeft: '3px solid #ff3c78', paddingLeft: '10px' },
-  footerLink: { color: '#999', textDecoration: 'none', fontSize: '14px', transition: '0.3s' },
-  footerText: { color: '#999', fontSize: '14px', margin: 0, lineHeight: '1.5' },
-  socialBubble: { background: '#141414', width: '40px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '50%', border: '1px solid #222', fontSize: '16px', transition: '0.3s' },
-  newsletterRow: { display: 'flex', borderRadius: '25px', overflow: 'hidden', border: '1px solid #333', background: '#111', padding: '4px' },
-  newsletterInput: { background: 'transparent', border: 'none', color: 'white', padding: '8px 15px', width: '100%', outline: 'none', fontSize: '13px' },
-  newsletterBtn: { background: '#ff3c78', border: 'none', color: 'white', padding: '0 20px', borderRadius: '20px', fontWeight: '500', cursor: 'pointer' },
-  footerBottomBar: { borderTop: '1px solid #111', paddingTop: '30px', textAlign: 'center', color: '#666', fontSize: '13px' },
-  modalOverlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0, 0, 0, 0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000, padding: '20px' },
-  modalContent: { background: '#161616', maxWidth: '600px', width: '100%', borderRadius: '20px', overflow: 'hidden', position: 'relative', border: '1px solid #333' },
-  closeBtn: { position: 'absolute', top: '15px', right: '20px', background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', fontSize: '28px', cursor: 'pointer', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
-  modalImage: { width: '100%', height: '280px', objectFit: 'contain', background: '#141414' },
-  modalBody: { padding: '35px' },
-  modalTitle: { fontSize: '32px', fontWeight: '700', marginBottom: '10px', color: 'white' },
-  tagLabel: { display: 'inline-block', background: 'rgba(255, 60, 120, 0.15)', color: '#ff3c78', padding: '5px 15px', borderRadius: '15px', fontSize: '12px', fontWeight: '600', marginBottom: '20px' },
-  modalDetailsText: { fontSize: '15px', color: '#ccc', lineHeight: '1.7', marginBottom: '25px' },
-  modalInfoGrid: { display: 'flex', gap: '30px', background: '#202020', padding: '15px 20px', borderRadius: '10px', fontSize: '14px', color: '#aaa', marginBottom: '30px' },
-  modalRegisterBtn: { background: '#ff3c78', color: 'white', border: 'none', padding: '14px 0', width: '100%', borderRadius: '25px', fontSize: '16px', fontWeight: '600', transition: '0.3s', cursor: 'pointer' }
+  homeContainer: { width: '100%', minHeight: 'calc(100vh - 80px)', background: '#0a0a0a', color: 'white', fontFamily: "'Poppins', sans-serif" },
+  navbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 5%', background: '#0a0a0a', position: 'fixed', top: 0, left: 0, width: '100%', height: '80px', zIndex: 1000, borderBottom: '1px solid #1a1a1a', boxSizing: 'border-box' },
+  logo: { fontSize: '26px', fontWeight: '700', color: '#ff3c78', letterSpacing: '1px', cursor: 'pointer' },
+  navLinks: { display: 'flex', gap: '30px', alignItems: 'center' },
+  navLink: { color: 'white', textDecoration: 'none', fontSize: '15px', fontWeight: '500', transition: 'color 0.2s' },
+  authGroup: { display: 'flex', gap: '12px', alignItems: 'center' },
+  loginBtn: { background: 'transparent', color: 'white', border: '2px solid #ff3c78', padding: '8px 25px', borderRadius: '20px', fontSize: '14px', cursor: 'pointer' },
+  signupBtn: { background: '#ff3c78', color: 'white', border: 'none', padding: '10px 25px', borderRadius: '20px', fontSize: '14px', textDecoration: 'none', fontWeight: '600' },
+  heroSection: { height: 'calc(85vh - 80px)', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundImage: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=1974')", backgroundSize: 'cover', backgroundPosition: 'center' },
+  heroContent: { textAlign: 'center', maxWidth: '850px', padding: '0 20px' },
+  heroTitle: { fontSize: '56px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.2' },
+  heroSubtitle: { fontSize: '15px', color: '#aaa', marginBottom: '35px', lineHeight: '1.7', maxWidth: '680px', margin: '0 auto 35px' },
+  btnGroup: { display: 'flex', justifyContent: 'center', gap: '15px' },
+  exploreBtn: { background: '#ff3c78', color: 'white', border: 'none', padding: '14px 35px', borderRadius: '30px', fontSize: '15px', fontWeight: '600' },
+  secondaryBtn: { background: 'transparent', color: 'white', border: '2px solid white', padding: '12px 35px', borderRadius: '30px', fontSize: '15px', fontWeight: '600' },
+  statsSection: { background: '#111', padding: '50px 5%', borderTop: '1px solid #1c1c1c', borderBottom: '1px solid #1c1c1c' },
+  statsGrid: { display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '30px', maxWidth: '1200px', margin: '0 auto' },
+  statCard: { textAlign: 'center', minWidth: '160px' },
+  statNumber: { fontSize: '36px', color: '#ff3c78', margin: '0 0 5px 0', fontWeight: '700' },
+  statLabel: { color: '#777', margin: 0, fontSize: '14px', fontWeight: '500' },
+  sectionPadding: { padding: '90px 10% 100px' },
+  sectionTitle: { fontSize: '32px', fontWeight: '700', textAlign: 'center', marginBottom: '50px', letterSpacing: '0.5px' },
+  testimonialGrid: { display: 'flex', gap: '30px', justifyContent: 'center', flexWrap: 'wrap' },
+  testimonialCard: { background: '#141414', border: '1px solid #222', padding: '35px', borderRadius: '16px', maxWidth: '480px', flex: '1', minWidth: '290px' },
+  quote: { fontStyle: 'italic', color: '#bbb', fontSize: '14.5px', lineHeight: '1.65', marginBottom: '25px', marginTop: 0 },
+  contactRowGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '60px', maxWidth: '1200px', margin: '0 auto', alignItems: 'center' },
+  enquiryCard: { background: '#141414', border: '1px solid #222', padding: '35px', borderRadius: '16px', boxSizing: 'border-box' },
+  successAlert: { background: 'rgba(46, 204, 113, 0.12)', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.3)', padding: '12px', borderRadius: '6px', fontSize: '13px', marginBottom: '20px', textAlign: 'center' },
+  submitEnquiryBtn: { background: '#ff3c78', color: 'white', border: 'none', padding: '13px 25px', borderRadius: '8px', fontSize: '14px', fontWeight: '600', width: '100%', cursor: 'pointer', transition: 'background 0.2s' },
+  footerContainer: { background: '#050505', borderTop: '1px solid #141414', padding: '70px 10% 25px' },
+  footerGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '40px', maxWidth: '1200px', margin: '0 auto' },
+  footerColumn: { display: 'flex', flexDirection: 'column' },
+  footerHeading: { fontSize: '14px', fontWeight: '600', marginBottom: '22px', letterSpacing: '0.5px', textTransform: 'uppercase', color: '#999' },
+  footerLinkList: { display: 'flex', flexDirection: 'column', gap: '12px' },
+  footerBottom: { maxWidth: '1200px', margin: '50px auto 0', paddingTop: '25px', borderTop: '1px solid #111', textAlign: 'center', fontSize: '12px', color: '#444' }
 };
