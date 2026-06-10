@@ -15,15 +15,13 @@ export const getUsers = async (req, res) => {
 // @desc    Register a new user (Student/Instructor/Admin) -> Maps to Signup.jsx
 // @route   POST /api/users/register
 export const registerUser = async (req, res) => {
-  const { name, email, password, role, phone } = req.body;
+  const { name, email, password, role, phone, bio, experienceLevel, danceStyle, imageUrl } = req.body;
   try {
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
-
-    // Password hashing is handled automatically by our pre-save hook in UserModel!
-    const newUser = await User.create({ name, email, password, role, phone });
+    const newUser = await User.create({ name, email, password, role, phone, bio, experienceLevel, danceStyle, imageUrl });
     res.status(201).json({
       _id: newUser._id,
       name: newUser.name,

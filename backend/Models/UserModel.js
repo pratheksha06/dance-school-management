@@ -10,7 +10,10 @@ const userSchema = new mongoose.Schema({
   
   // Step 2: Studio Placement Profile Parameters (Registration Page)
   age: { type: Number },
-  experienceLevel: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced'], default: 'Beginner' },
+  experienceLevel: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'], default: 'Beginner' },
+  bio: { type: String },
+  danceStyle: { type: String },
+  imageUrl: { type: String },
   preferredFormat: { type: String }, // e.g., "Select a discipline..."
   preferredSchedule: { type: String }, // e.g., "Select a slot..."
   studioLocation: { type: String }, // e.g., "Select studio hub..."

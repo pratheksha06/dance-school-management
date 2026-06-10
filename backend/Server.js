@@ -4,18 +4,23 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import userRouter from './Routers/UserRouter.js';
 import classRouter from './Routers/ClassRouter.js';
+import enrollmentRouter from './Routers/EnrollmentRouter.js';
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // 1. MIDDLEWARE FIRST
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+  credentials: true
+}));
 app.use(express.json());
 
 // 2. ROUTES SECOND
 app.use('/api/users', userRouter);
 app.use('/api/classes', classRouter);
+app.use('/api/enrollments', enrollmentRouter);
 
 // Base Route
 app.get('/', (req, res) => {

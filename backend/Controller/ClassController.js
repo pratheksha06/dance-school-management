@@ -1,5 +1,6 @@
+import mongoose from 'mongoose'; 
 import Class from '../Models/ClassModel.js';
-import User from '../Models/UserModel.js'; // 1. FIXED: Imported User model to prevent server crashes
+import User from '../Models/UserModel.js'; 
 
 // @desc    Get all dance classes with optional filters (style or instructor)
 // @route   GET /api/classes
@@ -8,32 +9,63 @@ export const getClasses = async (req, res) => {
     const { style, instructorId } = req.query;
     let query = {};
 
-    if (style) query.danceStyle = new RegExp(style, 'i'); // Case-insensitive search
+    if (style) query.danceStyle = new RegExp(style, 'i'); 
     if (instructorId) query.instructor = instructorId;
 
+    // Use native Mongoose population. It handles ObjectIds automatically without crashing.
     const classes = await Class.find(query)
-      .populate('instructor', 'name email phone')
+      .populate({
+        path: 'instructor',
+        select: 'name email phone bio imageUrl accomplishments',
+        model: 'User' 
+      })
       .populate('enrolledStudents', 'name email');
+
+    // Format the response safely so your frontend always receives a valid object structure
+    const formattedClasses = classes.map(cls => {
+      const doc = cls.toObject();
       
-    res.status(200).json(classes);
+      // If no instructor profile was found or attached, fall back to a safe placeholder object
+      if (!doc.instructor || typeof doc.instructor === 'string') {
+        doc.instructor = { name: doc.instructor || 'Assigned Expert' };
+      }
+      
+      return doc;
+    });
+      
+    res.status(200).json(formattedClasses);
   } catch (error) {
+    console.error("Critical Backend Fetch Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
-
 // @desc    Create/Schedule a new dance class
 // @route   POST /api/classes
 export const createClass = async (req, res) => {
-  // 2. FIXED: Destructured variables to accept frontend admin entries seamlessly
-  const { className, instructor, schedule, danceStyle, capacity, fee } = req.body;
+  // FIXED: Destructured the new fields directly from the frontend request body
+  const { 
+    className, 
+    instructor, 
+    schedule, 
+    danceStyle, 
+    capacity, 
+    fee,
+    description,          // Added
+    programImageUrl,      // Added
+    instructorExperience  // Added
+  } = req.body;
+
   try {
     const newClass = await Class.create({
       className,
-      instructor: instructor || null, // Default to null if no instructor assigned yet
+      instructor: instructor || null, 
       schedule,
       danceStyle,
       capacity: Number(capacity),
-      fee: fee || 0 // Default to free ($0) if not specified in admin entry panels
+      fee: fee || 0,
+      description: description || '',                    // Saved to MongoDB
+      programImageUrl: programImageUrl || '',            // Saved to MongoDB
+      instructorExperience: instructorExperience || ''   // Saved to MongoDB
     });
     res.status(201).json(newClass);
   } catch (error) {
@@ -44,8 +76,6 @@ export const createClass = async (req, res) => {
 // @desc    Enroll a student into a dance class
 // @route   POST /api/classes/enroll
 export const enrollInClass = async (req, res) => {
-  // 3. FIXED: Destructured both 'userId' and 'studentId' so it works perfectly 
-  // with what your frontend Home.jsx file is sending over the network!
   const { classId, studentId, userId } = req.body;
   const targetStudentId = studentId || userId; 
 
@@ -75,8 +105,6 @@ export const enrollInClass = async (req, res) => {
     danceClass.enrolledStudents.push(targetStudentId);
     await danceClass.save();
 
-    // Add class reference to student's profile records
-    // Checking to ensure your array exists on the user schema model before pushing
     if (!student.enrolledClasses) {
       student.enrolledClasses = [];
     }
