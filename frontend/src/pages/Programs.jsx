@@ -9,7 +9,7 @@ export default function Programs() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('https://rhythm-dance-backend-2.onrender.com')
+    axios.get('http://localhost:5000/api/classes')
       .then(res => {
         setPrograms(res.data);
         setLoading(false);

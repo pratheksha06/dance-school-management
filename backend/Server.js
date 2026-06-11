@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 5000;
 
 // 1. MIDDLEWARE FIRST
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174','https://rhythm-dance-frontend-b76n.vercel.app/'],
   credentials: true
 }));
 app.use(express.json());
